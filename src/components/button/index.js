@@ -14,9 +14,11 @@ export default class Button extends Component {
 		return (
 			<div>
 				<button onClick={cFunction}>
-					Display Weather
+					{this.props.children}
 				</button>
+
 			</div>
+
 		);
 	}
 }

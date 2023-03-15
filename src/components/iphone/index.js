@@ -9,62 +9,95 @@ import $ from 'jquery';
 import Button from '../button';
 
 export default class Iphone extends Component {
-//var Iphone = React.createClass({
 
 	// a constructor with initial set states
 	constructor(props){
 		super(props);
 		// temperature state
-		this.state.temp = "";
-		// button display state
-		this.setState({ display: true });
+		this.state = {
+			temp: "",
+			description: "",
+			display: true,
+			disruptions:[]
+		};
 	}
 
-	// a call to fetch weather data via wunderground
+	// a call to fetch weather data via openweathermap
 	fetchWeatherData = () => {
-		// API URL with a structure of : ttp://api.wunderground.com/api/key/feature/q/country-code/city.json
+		// API URL with a structure of: http://api.openweathermap.org/data/2.5/weather?q=city,country&APPID=apikey
 		var url = "http://api.openweathermap.org/data/2.5/weather?q=London&units=metric&APPID=776b7cbe36ab4e4ce2cd647150265193";
 		$.ajax({
 			url: url,
 			dataType: "jsonp",
-			success : this.parseResponse,
+			success : (data) => this.parseResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
-		})
+		});
 		// once the data grabbed, hide the button
 		this.setState({ display: false });
 	}
 
-	// the main render method for the iphone component
-	render() {
-		// check if temperature data is fetched, if so add the sign styling to the page
+	fetchDisruptionData = () => {
+		const lines = ["northern", "central", "circle", "district", "jubilee", "metropolitan", "northern", "piccadilly", "victoria", "bakerloo"];
+		const promises = lines.map(line => {
+		  const url = `https://api.tfl.gov.uk/Line/${line}/Disruption`;
+		  return $.ajax({
+			url: url,
+			dataType: "json",
+		  });
+		});
+		Promise.all(promises).then(responses => {
+		  const disruptions = responses.map(response => {
+			const description = response[0].description;
+			return description;
+		  });
+		  this.setState({
+			disruptions: disruptions
+		  });
+		}).catch(error => {
+		  console.log('API call failed ' + error);
+		});
+		this.setState({ display: false });
+	  }
+
+	  render() {
 		const tempStyles = this.state.temp ? `${style.temperature} ${style.filled}` : style.temperature;
-		
-		// display all weather data
+	
 		return (
-			<div class={ style.container }>
-				<div class={ style.header }>
-					<div class={ style.city }>{ this.state.locate }</div>
-					<div class={ style.conditions }>{ this.state.cond }</div>
-					<span class={ tempStyles }>{ this.state.temp }</span>
-				</div>
-				<div class={ style.details }></div>
-				<div class= { style_iphone.container }> 
-					{ this.state.display ? <Button class={ style_iphone.button } clickFunction={ this.fetchWeatherData }/ > : null }
-				</div>
+		  <div class={ style.container }>
+			<div class={ style.header }>
+			  <div class={ style.temperature }>{ this.state.temp }</div>
+			  <div class={ style.description }>{ this.state.description }</div>
 			</div>
+			<div class= { style_iphone.container }> 
+			  { this.state.display ? 
+				<div>
+				  <Button class={ style_iphone.button } clickFunction={ this.fetchWeatherData }>Display Weather</Button>
+				  <Button class={ style_iphone.button } clickFunction={ this.fetchDisruptionData }>Display Disruptions</Button>
+				</div>
+				: null 
+			  }
+			  { this.state.disruptions.length > 0 ?
+				<div>
+				  <h2>Disruptions:</h2>
+				  {this.state.disruptions.map((disruption, i) => (
+					<p key={i}>{disruption}</p>
+				  ))}
+				</div>
+				: null
+			  }
+			</div>
+		  </div>
 		);
+	  }
+	
+	  parseResponse = (parsed_json, type) => {
+		if (type === "weather") {
+		  const temp = parsed_json.main.temp;
+		  const description = parsed_json.weather[0].description;
+		  this.setState({
+			temp: temp,
+			description: description
+		  });
+		}
+	  }
 	}
-
-	parseResponse = (parsed_json) => {
-		var location = parsed_json['name'];
-		var temp_c = parsed_json['main']['temp'];
-		var conditions = parsed_json['weather']['0']['description'];
-
-		// set states for fields so they could be rendered later on
-		this.setState({
-			locate: location,
-			temp: temp_c,
-			cond : conditions
-		});      
-	}
-}
