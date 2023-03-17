@@ -32,6 +32,7 @@ export default class Iphone extends Component {
 			time3:"",
 			displayCurrent: true,
 			display: true,
+			displayUni:true,
 			display2: true,
 			home:true,
 			dpage: false,
@@ -65,6 +66,20 @@ export default class Iphone extends Component {
 		this.setState({ display: false });
 	}
 
+	// a call to fetch weather data via openweathermap
+	fetchUniWeatherData = () => {
+		// API URL with a structure of: http://api.openweathermap.org/data/2.5/weather?q=city,country&APPID=apikey
+		var url = "https://api.openweathermap.org/data/2.5/forecast?id=524901&lon=-0.046230&lat=51.521870&units=metric&appid=ff6197ed77d6bc29a776c3d6b8bca419";
+		$.ajax({
+			url: url,
+			dataType: "jsonp",
+			success : (data) => this.parseUniResponse(data, "weather"),
+			error : function(req, err){ console.log('API call failed ' + err); }
+		});
+		// once the data grabbed, hide the button
+		this.setState({ displayUni: false });
+	}
+
 	fetchDisruptionData = () => {
 		const lines = ["northern", "central", "circle", "district", "jubilee", "metropolitan", "northern", "piccadilly", "victoria", "bakerloo"];
 		const promises = lines.map(line => {
@@ -80,29 +95,35 @@ export default class Iphone extends Component {
 			return description;
 		  });
 		  this.setState({
-			disruptions: disruptions
+			disruptions: disruptions,
+			display2: false 
 		  });
 		}).catch(error => {
 		  console.log('API call failed ' + error);
 		});
-		this.setState({ display2: false });
 	}
 
 
 	setToHome = () => {
-		this.setState({home:true})
-		this.setState({dpage:false})
-		this.setState({display2:false})
-		this.setState({display:true})
-		this.setState({displayCurrent:true})
+		this.setState({
+			home:true,
+			dpage:false,
+			display2:false,
+			display:true,
+			displayCurrent:true,
+			displayUni:true
+		});
 	}
 
 	setToDisruption = () => {
-		this.setState({home:false})
-		this.setState({dpage:true})
-		this.setState({display:false})
-		this.setState({display2:true})
-		this.setState({displayCurrent:false})
+		this.setState({
+			home:false,
+			dpage:true,
+			display2:true,
+			display:false,
+			displayCurrent:false,
+			displayUni:false
+		});
 	}
 
 	render() {
@@ -130,16 +151,74 @@ export default class Iphone extends Component {
 						<td>{this.state.time3}</td>
 					</tr>
 					<tr>
-						<td>{this.state.description}</td>
-						<td>{this.state.description1}</td>
-						<td>{this.state.description2}</td>
-						<td>{this.state.description3}</td>
+						<td>
+							<img src={this.state.icon}></img>
+							<br></br>
+							{this.state.description}
+						</td>
+						<td>
+							<img src={this.state.icon1}></img>
+							<br></br>
+							{this.state.description1}
+						</td>
+						<td>
+						    <img src={this.state.icon2}></img>
+							<br></br>
+							{this.state.description2}
+						</td>
+						<td>
+							<img src={this.state.icon3}></img>
+							<br></br>
+							{this.state.description3}
+						</td>
 					</tr>
 					<tr>
 						<td class={tableStyle}>{this.state.temp}</td>
 						<td class={tableStyle}>{this.state.temp1}</td>
 						<td class={tableStyle}>{this.state.temp2}</td>
 						<td class={tableStyle}>{this.state.temp3}</td>
+					</tr>
+				</table>
+			</div>
+			:null
+	        }
+			{this.state.home && !this.state.displayUni? 
+			<div class={style_iphone.table}>
+				<h2>Queen Mary University of London</h2>
+				<table>
+					<tr>
+						<td>{this.state.Unitime}</td>
+						<td>{this.state.Unitime1}</td>
+						<td>{this.state.Unitime2}</td>
+						<td>{this.state.Unitime3}</td>
+					</tr>
+					<tr>
+						<td>
+							<img src={this.state.Uniicon}></img>
+							<br></br>
+							{this.state.Unidescription}
+						</td>
+						<td>
+							<img src={this.state.Uniicon1}></img>
+							<br></br>
+							{this.state.Unidescription1}
+						</td>
+						<td>
+						    <img src={this.state.Uniicon2}></img>
+							<br></br>
+							{this.state.Unidescription2}
+						</td>
+						<td>
+							<img src={this.state.Uniicon3}></img>
+							<br></br>
+							{this.state.Unidescription3}
+						</td>
+					</tr>
+					<tr>
+						<td class={tableStyle}>{this.state.Unitemp}</td>
+						<td class={tableStyle}>{this.state.Unitemp1}</td>
+						<td class={tableStyle}>{this.state.Unitemp2}</td>
+						<td class={tableStyle}>{this.state.Unitemp3}</td>
 					</tr>
 				</table>
 			</div>
@@ -152,6 +231,9 @@ export default class Iphone extends Component {
 				<div class={style_iphone.button}>
 					{this.state.display && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchWeatherData} >Display Home Weather</Button> : null}
 				</div>
+				<div class={style_iphone.button}>
+					{this.state.displayUni && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchUniWeatherData} >Display Uni Weather</Button> : null}
+				</div>
 			  	{ this.state.display2 && this.state.dpage ? 
 					<div>
 					  <Button class={ style_iphone.button } clickFunction={ this.fetchDisruptionData }>Display Disruptions</Button>
@@ -159,7 +241,7 @@ export default class Iphone extends Component {
 					: null 
 			 	}
 			 	{ this.state.disruptions.length && this.state.dpage && !this.state.display2> 0 ?
-				<div class={style.header}>
+				<div class={style_iphone.disruptions}>
 					<h2>Disruptions:</h2>
 				  	{this.state.disruptions.map((disruption, i) => (
 					<p key={i}>{disruption}</p>
@@ -197,28 +279,77 @@ export default class Iphone extends Component {
 		  	const temp = parsed_json.list[0].main.temp;
 		  	const description = parsed_json.list[0].weather[0].description;
 			const time = parsed_json.list[0].dt_txt;
+			const icon = parsed_json.list[0].weather[0].main;
 			const temp1 = parsed_json.list[1].main.temp;
 		  	const description1 = parsed_json.list[1].weather[0].description;
 			const time1 = parsed_json.list[1].dt_txt;
+			const icon1 = parsed_json.list[0].weather[0].main;
 			const temp2 = parsed_json.list[2].main.temp;
 		  	const description2 = parsed_json.list[2].weather[0].description;
 			const time2 = parsed_json.list[2].dt_txt;
+			const icon2 = parsed_json.list[0].weather[0].main;
 			const temp3 = parsed_json.list[3].main.temp;
 		  	const description3 = parsed_json.list[3].weather[0].description;
 			const time3 = parsed_json.list[3].dt_txt;
+			const icon3 = parsed_json.list[0].weather[0].main;
+			
 		  	this.setState({
 				temp: temp,
 				description: description,
 				time: time,
+				icon: `../../assets/icons/${icon}.png`,
 				temp1: temp1,
 				description1: description1,
 				time1: time1,
+				icon1: `../../assets/icons/${icon1}.png`,
 				temp2: temp2,
 				description2: description2,
 				time2: time2,
+				icon2: `../../assets/icons/${icon2}.png`,
 				temp3: temp3,
 				description3: description3,
 				time3: time3,
+				icon3: `../../assets/icons/${icon3}.png`
+		  	});
+		}
+	}
+
+	parseUniResponse = (parsed_json, type) => {
+		if (type === "weather") {
+		  	const Unitemp = parsed_json.list[0].main.temp;
+		  	const Unidescription = parsed_json.list[0].weather[0].description;
+			const Unitime = parsed_json.list[0].dt_txt;
+			const Uniicon = parsed_json.list[0].weather[0].main;
+			const Unitemp1 = parsed_json.list[1].main.temp;
+		  	const Unidescription1 = parsed_json.list[1].weather[0].description;
+			const Unitime1 = parsed_json.list[1].dt_txt;
+			const Uniicon1 = parsed_json.list[0].weather[0].main;
+			const Unitemp2 = parsed_json.list[2].main.temp;
+		  	const Unidescription2 = parsed_json.list[2].weather[0].description;
+			const Unitime2 = parsed_json.list[2].dt_txt;
+			const Uniicon2 = parsed_json.list[0].weather[0].main;
+			const Unitemp3 = parsed_json.list[3].main.temp;
+		  	const Unidescription3 = parsed_json.list[3].weather[0].description;
+			const Unitime3 = parsed_json.list[3].dt_txt;
+			const Uniicon3 = parsed_json.list[0].weather[0].main;
+			
+		  	this.setState({
+				Unitemp: Unitemp,
+				Unidescription: Unidescription,
+				Unitime: Unitime,
+				Uniicon: `../../assets/icons/${Uniicon}.png`,
+				Unitemp1: Unitemp1,
+				Unidescription1: Unidescription1,
+				Unitime1: Unitime1,
+				Uniicon1: `../../assets/icons/${Uniicon1}.png`,
+				Unitemp2: Unitemp2,
+				Unidescription2: Unidescription2,
+				Unitime2: Unitime2,
+				Uniicon2: `../../assets/icons/${Uniicon2}.png`,
+				Unitemp3: Unitemp3,
+				Unidescription3: Unidescription3,
+				Unitime3: Unitime3,
+				Uniicon3: `../../assets/icons/${Uniicon3}.png`
 		  	});
 		}
 	}
