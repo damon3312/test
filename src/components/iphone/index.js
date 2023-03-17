@@ -128,7 +128,7 @@ export default class Iphone extends Component {
 
 	render() {
 		const tempStyles = this.state.currentTemp ? `${style.temperature} ${style.filled}` : style.temperature;
-		const tableStyle = this.state.temp||this.state.temp1||this.state.temp2||this.state.temp3 ? `${style_iphone.temperature} ${style_iphone.filled}` : null;
+		const tableStyle = this.state.temp||this.state.temp1||this.state.temp2||this.state.temp3 ? `${style.temperature1} ${style.filled1}` : null;
 	
 		return (
 		<div class={ style.container }>
@@ -141,7 +141,7 @@ export default class Iphone extends Component {
 			: null
 	        }
 			{this.state.home && !this.state.display? 
-			<div class={style_iphone.table}>
+			<div class={style.table}>
 				<h2>Home</h2>
 				<table>
 					<tr>
@@ -183,7 +183,7 @@ export default class Iphone extends Component {
 			:null
 	        }
 			{this.state.home && !this.state.displayUni? 
-			<div class={style_iphone.table}>
+			<div class={style.table}>
 				<h2>Queen Mary University of London</h2>
 				<table>
 					<tr>
@@ -241,7 +241,7 @@ export default class Iphone extends Component {
 					: null 
 			 	}
 			 	{ this.state.disruptions.length && this.state.dpage && !this.state.display2> 0 ?
-				<div class={style_iphone.disruptions}>
+				<div class={style.disruptions}>
 					<h2>Disruptions:</h2>
 				  	{this.state.disruptions.map((disruption, i) => (
 					<p key={i}>{disruption}</p>
@@ -250,10 +250,10 @@ export default class Iphone extends Component {
 				: null
 			  }
 			</div>
-			<div class={style_iphone.footer}>
+			<div class={style.footer}>
 				<table>
-					<td><Button class={ style_iphone.button } clickFunction={ this.setToHome }>Home Page</Button></td>
-					<td><Button class={ style_iphone.button } clickFunction={ this.setToDisruption}>Disruptions Page</Button></td>
+					<td><Button class={ style.button } clickFunction={ this.setToHome }>Home Page</Button></td>
+					<td><Button class={ style.button } clickFunction={ this.setToDisruption}>Disruptions Page</Button></td>
 				</table>
 			</div>
 		</div>
