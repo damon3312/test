@@ -36,7 +36,8 @@ export default class Iphone extends Component {
 			display2: true,
 			home:true,
 			dpage: false,
-			disruptions:[]
+			disruptions:[],
+			disruptionsDisplayed: false
 		};
 	}
 
@@ -109,28 +110,29 @@ export default class Iphone extends Component {
 	}
 
 	fetchDisruptionData = () => {
-		const lines = ["northern", "central", "circle", "district", "jubilee", "metropolitan", "northern", "piccadilly", "victoria", "bakerloo"];
-		const promises = lines.map(line => {
-		  const url = `https://api.tfl.gov.uk/Line/${lines}/Disruption`;
-		  return $.ajax({
-			url: url,
-			dataType: "json",
-		  });
-		});
-		Promise.all(promises).then(responses => {
-		  const disruptions = responses.map(response => {
-			const description = response[0].description;
-			return description;
-		  });
-		  this.setState({
-			disruptions: disruptions,
-			display2: false 
-		  });
-		}).catch(error => {
-		  console.log('API call failed ' + error);
-		});
-	}
+        const lines = ["northern", "district", "circle", "central", "jubilee", "metropolitan", "northern", "piccadilly", "victoria", "bakerloo"];
+        const promises = lines.map(line => {
+          const url = `https://api.tfl.gov.uk/Line/${line}/Disruption`;
+          return $.ajax({
+            url: url,
+            dataType: "json",
+          });
+        });
+        Promise.all(promises).then(responses => {
+          const disruptions = responses.map((response, index) => {
+            const lineName = lines[index];
+            const description = response.length > 0 ? response[0].description : `${lineName} line: No disruptions.`;
+            return description;
+          });
+          this.setState({
+            disruptions: disruptions,
+            disruptionsDisplayed: true
 
+          });
+        }).catch(error => {
+          console.log('API call failed ' + error);
+        });
+      }
 
 	setToHome = () => {
 		this.setState({
@@ -286,26 +288,27 @@ export default class Iphone extends Component {
 				<div class={style_iphone.button}>
 					{this.state.displayUni && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchUniWeatherData} >Display Uni Weather</Button> : null}
 				</div>
-			  	{ this.state.display2 && this.state.dpage ? 
-					<div>
-					  <Button class={ style_iphone.button } clickFunction={ this.fetchDisruptionData }>Display Disruptions</Button>
+				<div>
+					{this.state.display2 && this.state.dpage && !this.state.disruptionsDisplayed ? (
+						<Button class={style_iphone.button} clickFunction={this.fetchDisruptionData}>
+						Display Disruptions
+						</Button>
+					) : null}
 					</div>
-					: null 
-			 	}
-			 	{ this.state.disruptions.length && this.state.dpage && !this.state.display2> 0 ?
+				{this.state.disruptions.length >= 1 && this.state.dpage && this.state.display2 &&
 				<div class={style.disruptions}>
 					<h2>Disruptions:</h2>
-				  	{this.state.disruptions.map((disruption, i) => (
+					{this.state.disruptions.map((disruption, i) => (
 					<p key={i}>{disruption}</p>
-				  	))}
+					))}
 				</div>
-				: null
-			  }
+				}
 			</div>
 			<div class={style.footer}>
 				<table>
 					<td><Button class={ style.button } clickFunction={ this.setToHome }>Home Page</Button></td>
 					<td><Button class={ style.button } clickFunction={ this.setToDisruption}>Disruptions Page</Button></td>
+					
 				</table>
 			</div>
 		</div>
