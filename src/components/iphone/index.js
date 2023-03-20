@@ -34,11 +34,24 @@ export default class Iphone extends Component {
 			display: true,
 			displayUni:true,
 			display2: true,
+			displayRecommendations: true,
 			home:true,
 			dpage: false,
 			disruptions:[],
-			disruptionsDisplayed: false
+			recommendation:[]
 		};
+	}
+
+	fetchRecommendations = () =>{
+		var url = "http://api.openweathermap.org/data/2.5/weather?q=London&units=metric&APPID=ff6197ed77d6bc29a776c3d6b8bca419";
+		$.ajax({
+			url: url,
+			dataType: "jsonp",
+			success : (data) => this.parseRecommendation(data,"weather"),
+			error : function(req, err){ console.log('API call failed ' + err); }
+		})
+		// once the data grabbed, hide the button
+		this.setState({ displayRecommendations: false });
 	}
 
 	fetchCurrentWeather = () =>{
@@ -110,29 +123,28 @@ export default class Iphone extends Component {
 	}
 
 	fetchDisruptionData = () => {
-        const lines = ["northern", "district", "circle", "central", "jubilee", "metropolitan", "northern", "piccadilly", "victoria", "bakerloo"];
-        const promises = lines.map(line => {
-          const url = `https://api.tfl.gov.uk/Line/${line}/Disruption`;
-          return $.ajax({
-            url: url,
-            dataType: "json",
-          });
-        });
-        Promise.all(promises).then(responses => {
-          const disruptions = responses.map((response, index) => {
-            const lineName = lines[index];
-            const description = response.length > 0 ? response[0].description : `${lineName} line: No disruptions.`;
-            return description;
-          });
-          this.setState({
-            disruptions: disruptions,
-            disruptionsDisplayed: true
+		const lines = ["northern", "central", "circle", "district", "jubilee", "metropolitan", "northern", "piccadilly", "victoria", "bakerloo"];
+		const promises = lines.map(line => {
+		  const url = `https://api.tfl.gov.uk/Line/${lines}/Disruption`;
+		  return $.ajax({
+			url: url,
+			dataType: "json",
+		  });
+		});
+		Promise.all(promises).then(responses => {
+		  const disruptions = responses.map(response => {
+			const description = response[0].description;
+			return description;
+		  });
+		  this.setState({
+			disruptions: disruptions,
+			display2: false 
+		  });
+		}).catch(error => {
+		  console.log('API call failed ' + error);
+		});
+	}
 
-          });
-        }).catch(error => {
-          console.log('API call failed ' + error);
-        });
-      }
 
 	setToHome = () => {
 		this.setState({
@@ -141,7 +153,8 @@ export default class Iphone extends Component {
 			display2:false,
 			display:true,
 			displayCurrent:true,
-			displayUni:true
+			displayUni:true,
+			displayRecommendations: true
 		});
 	}
 
@@ -152,13 +165,15 @@ export default class Iphone extends Component {
 			display2:true,
 			display:false,
 			displayCurrent:false,
-			displayUni:false
+			displayUni:false,
+			displayRecommendations: false
 		});
 	}
 
 	render() {
 		const tempStyles = this.state.currentTemp ? `${style.temperature} ${style.filled}` : style.temperature;
 		const tableStyle = this.state.temp||this.state.temp1||this.state.temp2||this.state.temp3 ? `${style.temperature1} ${style.filled1}` : null;
+		let recommendation = this.state.recommendation;
 	
 		return (
 		<div class={ style.container }>
@@ -278,6 +293,15 @@ export default class Iphone extends Component {
 			</div>
 			:null
 	        }
+			{this.state.home &&!this.state.displayRecommendations?
+			<div>
+				<h2>Weather Recommendations</h2>
+				<ul>
+					{recommendation.map(recommendation => <li>{recommendation}</li>)}
+				</ul>
+			</div>
+			:null
+			}
 			<div class= { style_iphone.container }> 
 				<div class={style_iphone.button}>
 					{this.state.displayCurrent && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchCurrentWeather} >Display Current Weather</Button> : null}
@@ -288,32 +312,35 @@ export default class Iphone extends Component {
 				<div class={style_iphone.button}>
 					{this.state.displayUni && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchUniWeatherData} >Display Uni Weather</Button> : null}
 				</div>
-				<div>
-					{this.state.display2 && this.state.dpage && !this.state.disruptionsDisplayed ? (
-						<Button class={style_iphone.button} clickFunction={this.fetchDisruptionData}>
-						Display Disruptions
-						</Button>
-					) : null}
+			  	{ this.state.display2 && this.state.dpage ? 
+					<div>
+					  <Button class={ style_iphone.button } clickFunction={ this.fetchDisruptionData }>Display Disruptions</Button>
 					</div>
-				{this.state.disruptions.length >= 1 && this.state.dpage && this.state.display2 &&
+					: null 
+			 	}
+				<div class={style_iphone.button}>
+					{this.state.displayRecommendations && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchRecommendations} >Display Recommendations</Button> : null}
+				</div>
+			 	{ this.state.disruptions.length && this.state.dpage && !this.state.display2> 0 ?
 				<div class={style.disruptions}>
 					<h2>Disruptions:</h2>
-					{this.state.disruptions.map((disruption, i) => (
+				  	{this.state.disruptions.map((disruption, i) => (
 					<p key={i}>{disruption}</p>
-					))}
+				  	))}
 				</div>
-				}
+				: null
+			    }
 			</div>
 			<div class={style.footer}>
 				<table>
 					<td><Button class={ style.button } clickFunction={ this.setToHome }>Home Page</Button></td>
 					<td><Button class={ style.button } clickFunction={ this.setToDisruption}>Disruptions Page</Button></td>
-					
 				</table>
 			</div>
 		</div>
 		);
 	}
+
 
 	parseCurrentWeather = (parsed_json, type) => {
 		if (type === "weather") {
@@ -328,7 +355,38 @@ export default class Iphone extends Component {
 
 		}
 	}
-	
+
+	parseRecommendation = (parsed_json,type) =>{
+		if (type === "weather") {
+			const currentDescription = parsed_json.weather[0].description;
+			const currentTemp = parsed_json.main.temp;
+			let recommendation = [];
+
+			if (currentTemp > 10){
+				recommendation.push('It will be warm today so remember to wear light clothing');
+			} 
+			else{
+				recommendation.push('It may be a bit chilly today so wrap up warm');
+			}	
+
+			if (currentDescription.includes('rain')){
+				recommendation.push('It may rain so remeber to wear a coat or bring an umbrella');
+			} 
+			else if (currentDescription.includes('clouds')){
+				recommendation.push('Test for clouds');
+			} 
+			else{
+				recommendation.push('Probably wont rain');
+			}
+			
+		this.setState({
+			recommendation: recommendation
+		});
+
+		}
+	}
+
+
 	parseResponse = (parsed_json, type) => {
 		if (type === "weather") {
 		  	const temp = parsed_json.list[0].main.temp;
