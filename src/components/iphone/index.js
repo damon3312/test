@@ -30,30 +30,20 @@ export default class Iphone extends Component {
 			time1:"",
 			time2:"",
 			time3:"",
-			displayCurrent: true,
-			display: true,
-			displayUni:true,
-			display2: true,
-			displayRecommendations: true,
 			home:true,
 			dpage: false,
 			disruptions:[],
-			disruptionsDisplayed: false
+			recommendation: [],
+			disruptionsDisplayed: false,
 		};
+
+		this.fetchCurrentWeather();
+		this.fetchWeatherData();
+		this.fetchUniWeatherData();
+		this.fetchDisruptionData();
+		this.fetchRecommendations();
 	}
 
-
-	fetchRecommendations = () =>{
-		var url = "http://api.openweathermap.org/data/2.5/weather?q=London&units=metric&APPID=ff6197ed77d6bc29a776c3d6b8bca419";
-		$.ajax({
-			url: url,
-			dataType: "jsonp",
-			success : (data) => this.parseRecommendation(data,"weather"),
-			error : function(req, err){ console.log('API call failed ' + err); }
-		})
-		// once the data grabbed, hide the button
-		this.setState({ displayRecommendations: false });
-	}
 
 	fetchCurrentWeather = () =>{
 		var url = "http://api.openweathermap.org/data/2.5/weather?q=London&units=metric&APPID=ff6197ed77d6bc29a776c3d6b8bca419";
@@ -63,8 +53,6 @@ export default class Iphone extends Component {
 			success : (data) => this.parseCurrentWeather(data,"weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		})
-		// once the data grabbed, hide the button
-		this.setState({ displayCurrent: false });
 	}
 
 	// a call to fetch weather data via openweathermap
@@ -77,8 +65,7 @@ export default class Iphone extends Component {
 			success : (data) => this.parseResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
-		// once the data grabbed, hide the button
-		this.setState({ display: false });
+		
 	}
 
 	// a call to fetch weather data via openweathermap
@@ -91,8 +78,6 @@ export default class Iphone extends Component {
 			success : (data) => this.parseNextResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
-		// once the data grabbed, hide the button
-		this.setState({ display: false });
 	}
 
 	// a call to fetch weather data via openweathermap
@@ -105,8 +90,6 @@ export default class Iphone extends Component {
 			success : (data) => this.parseUniResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
-		// once the data grabbed, hide the button
-		this.setState({ displayUni: false });
 	}
 
 	// a call to fetch weather data via openweathermap
@@ -120,7 +103,6 @@ export default class Iphone extends Component {
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
 		// once the data grabbed, hide the button
-		this.setState({ displayUni: false });
 	}
 
 	fetchDisruptionData = () => {
@@ -146,29 +128,31 @@ export default class Iphone extends Component {
         }).catch(error => {
           console.log('API call failed ' + error);
         });
-      }
+    }
+
+	fetchRecommendations = () =>{
+		var url = "http://api.openweathermap.org/data/2.5/weather?q=London&units=metric&APPID=ff6197ed77d6bc29a776c3d6b8bca419";
+		$.ajax({
+			url: url,
+			dataType: "jsonp",
+			success : (data) => this.parseRecommendation(data,"weather"),
+			error : function(req, err){ console.log('API call failed ' + err); }
+		});
+	
+	}
 
 	setToHome = () => {
 		this.setState({
 			home:true,
-			dpage:false,
-			display2:false,
-			display:true,
-			displayCurrent:true,
-			displayUni:true,
-			displayRecommendations: true
+			dpage:false
+		
 		});
 	}
 
 	setToDisruption = () => {
 		this.setState({
 			home:false,
-			dpage:true,
-			display2:true,
-			display:false,
-			displayCurrent:false,
-			displayUni:false,
-			displayRecommendations: false
+			dpage:true
 		});
 	}
 
@@ -179,7 +163,7 @@ export default class Iphone extends Component {
 	
 		return (
 		<div class={ style.container }>
-			{this.state.home && !this.state.displayCurrent?
+			{this.state.home?
 			<div class={ style.header }>
 				<div class={style.city}>{this.state.locate}</div>
 				<span class={tempStyles}>{this.state.currentTemp}</span>
@@ -187,7 +171,7 @@ export default class Iphone extends Component {
 			</div>
 			: null
 	        }
-			{this.state.home && !this.state.display? 
+			{this.state.home? 
 			<div>
 				<table>
 					<tr>
@@ -241,7 +225,7 @@ export default class Iphone extends Component {
 			</div>
 			:null
 	        }
-			{this.state.home && !this.state.displayUni? 
+			{this.state.home? 
 			<div>
 				<table>
 					<tr>
@@ -295,49 +279,34 @@ export default class Iphone extends Component {
 			</div>
 			:null
 	        }
-			{this.state.home &&!this.state.displayRecommendations?
-			<div>
+			{this.state.home ?
+			<div class={style.recommendation}>
 				<h2>Weather Recommendations</h2>
 				<ul>
-					{recommendation.map(recommendation => <li>{recommendation}</li>)}
+					{this.state.recommendation.map((recommendation) => (
+					<li>{recommendation}</li>
+					))}
 				</ul>
 			</div>
 			:null
 			}
 			<div class= { style_iphone.container }> 
-				<div class={style_iphone.button}>
-					{this.state.displayCurrent && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchCurrentWeather} >Display Current Weather</Button> : null}
-				</div>
-				<div class={style_iphone.button}>
-					{this.state.display && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchWeatherData} >Display Home Weather</Button> : null}
-				</div>
-				<div class={style_iphone.button}>
-					{this.state.displayUni && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchUniWeatherData} >Display Uni Weather</Button> : null}
-				</div>
-				<div>
-					{this.state.display2 && this.state.dpage && !this.state.disruptionsDisplayed ? (
-						<Button class={style_iphone.button} clickFunction={this.fetchDisruptionData}>
-						Display Disruptions
-						</Button>
-					) : null}
-					</div>
-				{this.state.disruptions.length >= 1 && this.state.dpage && this.state.display2 &&
+			{this.state.disruptions.length >= 1 && this.state.dpage ?
 				<div class={style.disruptions}>
 					<h2>Disruptions:</h2>
-					{this.state.disruptions.map((disruption, i) => (
-					<p key={i}>{disruption}</p>
-					))}
+					<ul>
+						{this.state.disruptions.map((disruption, i) => (
+						<li key={i}>{disruption}</li>
+						))}
+					</ul>
 				</div>
-				}
-				<div class={style_iphone.button}>
-					{this.state.displayRecommendations && this.state.home? <Button class={style_iphone.button} clickFunction={this.fetchRecommendations} >Display Recommendations</Button> : null}
-				</div>
+			: null
+			}
 			</div>
 			<div class={style.footer}>
 				<table>
 					<td><Button class={ style.button } clickFunction={ this.setToHome }>Home Page</Button></td>
 					<td><Button class={ style.button } clickFunction={ this.setToDisruption}>Disruptions Page</Button></td>
-					
 				</table>
 			</div>
 		</div>
@@ -364,22 +333,22 @@ export default class Iphone extends Component {
 			const currentTemp = parsed_json.main.temp;
 			let recommendation = [];
 
-			if (currentTemp > 10){
-				recommendation.push('It will be warm today so remember to wear light clothing');
+			if (currentTemp > 15){
+				recommendation.push('It will be warm today so remember to wear light clothing.');
+			}
+			else if (currentTemp > 10){
+				recommendation.push('It is not too cold but still remember to put on a jacket.');
 			} 
 			else{
-				recommendation.push('It may be a bit chilly today so wrap up warm');
+				recommendation.push('It may be a bit chilly today so wrap up warm.');
 			}	
 
 			if (currentDescription.includes('rain')){
-				recommendation.push('It may rain so remeber to wear a coat or bring an umbrella');
+				recommendation.push('It may rain so remeber to wear a coat or bring an umbrella.');
 			} 
 			else if (currentDescription.includes('clouds')){
-				recommendation.push('Test for clouds');
+				recommendation.push('It is cloudy, so prepare for the possibility of rain.');
 			} 
-			else{
-				recommendation.push('Probably wont rain');
-			}
 
 		this.setState({
 			recommendation: recommendation
