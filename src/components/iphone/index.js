@@ -35,6 +35,10 @@ export default class Iphone extends Component {
 			disruptions:[],
 			recommendation: [],
 			disruptionsDisplayed: false,
+			rightHome: true,
+			leftHome: false,
+			rightUni: true,
+			leftUni: false
 		};
 
 		this.fetchCurrentWeather();
@@ -52,7 +56,7 @@ export default class Iphone extends Component {
 			dataType: "jsonp",
 			success : (data) => this.parseCurrentWeather(data,"weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
-		})
+		});
 	}
 
 	// a call to fetch weather data via openweathermap
@@ -65,7 +69,10 @@ export default class Iphone extends Component {
 			success : (data) => this.parseResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
-		
+		this.setState({
+			rightHome: true,
+			leftHome: false
+		});
 	}
 
 	// a call to fetch weather data via openweathermap
@@ -77,6 +84,10 @@ export default class Iphone extends Component {
 			dataType: "jsonp",
 			success : (data) => this.parseNextResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
+		});
+		this.setState({
+			rightHome: false,
+			leftHome: true
 		});
 	}
 
@@ -90,6 +101,10 @@ export default class Iphone extends Component {
 			success : (data) => this.parseUniResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
+		this.setState({
+			rightUni: true,
+			leftUni: false
+		});
 	}
 
 	// a call to fetch weather data via openweathermap
@@ -102,7 +117,10 @@ export default class Iphone extends Component {
 			success : (data) => this.parseNextUniResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
-		// once the data grabbed, hide the button
+		this.setState({
+			rightUni: false,
+			leftUni: true
+		});
 	}
 
 	fetchDisruptionData = () => {
@@ -159,6 +177,8 @@ export default class Iphone extends Component {
 	render() {
 		const tempStyles = this.state.currentTemp ? `${style.temperature} ${style.filled}` : style.temperature;
 		const tableStyle = this.state.temp||this.state.temp1||this.state.temp2||this.state.temp3 ? `${style.temperature1} ${style.filled1}` : null;
+		const HomeStyle = this.state.rightHome? `${style.right}` : `${style.left}`;
+		const UniStyle = this.state.rightUni? `${style.right}` : `${style.left}`;
 		let recommendation = this.state.recommendation;
 	
 		return (
@@ -173,10 +193,10 @@ export default class Iphone extends Component {
 	        }
 			{this.state.home? 
 			<div>
-				<table>
+				<table class={HomeStyle}>
 					<tr>
 						<td>
-							<Button class={style.leftArrow} clickFunction={this.fetchWeatherData}><img src="../../assets/icons/lArrow.png" height="25" width="20"></img></Button>
+							{this.state.leftHome? <Button class={style.leftArrow} clickFunction={this.fetchWeatherData}><img src="../../assets/icons/lArrow.png" height="25" width="20"></img></Button> : null }
 						</td>
 						<td class={style.table}>
 							<h2>Home</h2>
@@ -218,7 +238,7 @@ export default class Iphone extends Component {
 							</table>
 						</td>
 						<td>
-							<Button class={style.rightArrow} clickFunction={this.fetchNextWeatherData}><img src="../../assets/icons/rArrow.png" height="25" width="20"></img></Button>
+							{this.state.rightHome?<Button class={style.rightArrow} clickFunction={this.fetchNextWeatherData}><img src="../../assets/icons/rArrow.png" height="25" width="20"></img></Button> : null }
 						</td>
 					</tr>
 				</table>
@@ -227,10 +247,10 @@ export default class Iphone extends Component {
 	        }
 			{this.state.home? 
 			<div>
-				<table>
+				<table class={UniStyle}>
 					<tr>
 						<td>
-							<Button class={style.leftArrow} clickFunction={this.fetchUniWeatherData}><img src="../../assets/icons/lArrow.png" height="25" width="20"></img></Button>
+							{this.state.leftUni?<Button class={style.leftArrow} clickFunction={this.fetchUniWeatherData}><img src="../../assets/icons/lArrow.png" height="25" width="20"></img></Button> : null}
 						</td>
 						<td class={style.table}>
 							<h2>Queen Mary University of London</h2>
@@ -272,7 +292,7 @@ export default class Iphone extends Component {
 							</table>
 						</td>
 						<td>
-							<Button class={style.rightArrow} clickFunction={this.fetchNextUniWeatherData}><img src="../../assets/icons/rArrow.png" height="25" width="20"></img></Button>
+							{this.state.rightUni? <Button class={style.rightArrow} clickFunction={this.fetchNextUniWeatherData}><img src="../../assets/icons/rArrow.png" height="25" width="20"></img></Button> : null}
 						</td>
 					</tr>
 				</table>	
