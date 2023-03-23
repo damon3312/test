@@ -13,7 +13,7 @@ export default class Iphone extends Component {
 	// a constructor with initial set states
 	constructor(props){
 		super(props);
-		// temperature state
+		// temperature and variable state
 		this.state = {
 			temp: "",
 			temp1: "",
@@ -26,6 +26,10 @@ export default class Iphone extends Component {
 			description1: "",
 			description2: "",
 			description3: "",
+			Unidescription: "",
+			Unidescription1:"",
+			Unidescription2: "",
+			Unidescription3:"",
 			time:"",
 			time1:"",
 			time2:"",
@@ -49,6 +53,7 @@ export default class Iphone extends Component {
 	}
 
 
+	// a call to fetch current weather data via openweathermap
 	fetchCurrentWeather = () =>{
 		var url = "http://api.openweathermap.org/data/2.5/weather?q=London&units=metric&APPID=ff6197ed77d6bc29a776c3d6b8bca419";
 		$.ajax({
@@ -69,6 +74,7 @@ export default class Iphone extends Component {
 			success : (data) => this.parseResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
+		// makes the right button visible and the left button hidden
 		this.setState({
 			rightHome: true,
 			leftHome: false
@@ -85,13 +91,14 @@ export default class Iphone extends Component {
 			success : (data) => this.parseNextResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
+		// makes the left button visible and the right button hidden
 		this.setState({
 			rightHome: false,
 			leftHome: true
 		});
 	}
 
-	// a call to fetch weather data via openweathermap
+	// a call to fetch weather data from Queen Mary university via openweathermap
 	fetchUniWeatherData = () => {
 		// API URL with a structure of: http://api.openweathermap.org/data/2.5/weather?q=city,country&APPID=apikey
 		var url = "https://api.openweathermap.org/data/2.5/forecast?id=524901&lon=-0.046230&lat=51.521870&units=metric&appid=ff6197ed77d6bc29a776c3d6b8bca419";
@@ -101,13 +108,14 @@ export default class Iphone extends Component {
 			success : (data) => this.parseUniResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
+		// makes the right button visible and the left button hidden
 		this.setState({
 			rightUni: true,
 			leftUni: false
 		});
 	}
 
-	// a call to fetch weather data via openweathermap
+	// a call to fetch weather data from Queen Mary university via openweathermap
 	fetchNextUniWeatherData = () => {
 		// API URL with a structure of: http://api.openweathermap.org/data/2.5/weather?q=city,country&APPID=apikey
 		var url = "https://api.openweathermap.org/data/2.5/forecast?id=524901&lon=-0.046230&lat=51.521870&units=metric&appid=ff6197ed77d6bc29a776c3d6b8bca419";
@@ -117,38 +125,43 @@ export default class Iphone extends Component {
 			success : (data) => this.parseNextUniResponse(data, "weather"),
 			error : function(req, err){ console.log('API call failed ' + err); }
 		});
+		// makes the left button visible and the right button hidden
 		this.setState({
 			rightUni: false,
 			leftUni: true
 		});
 	}
 
+	// a call to fetch TFL disruption data via tfl.gov.uk
 	fetchDisruptionData = () => {
         const lines = ["northern", "district", "circle", "central", "jubilee", "metropolitan", "northern", "piccadilly", "victoria", "bakerloo"];
         const promises = lines.map(line => {
-          const url = `https://api.tfl.gov.uk/Line/${line}/Disruption`;
-          return $.ajax({
-            url: url,
-            dataType: "json",
-          });
+			// API URL with a structure of: https://api.tfl.gov.uk/Line/${line}/Disruption
+          	const url = `https://api.tfl.gov.uk/Line/${line}/Disruption`;
+          	return $.ajax({
+           		url: url,
+            	dataType: "json",
+          	});
         });
         Promise.all(promises).then(responses => {
-          const disruptions = responses.map((response, index) => {
-            const lineName = lines[index];
-            const description = response.length > 0 ? response[0].description : `${lineName} line: No disruptions.`;
-            return description;
-          });
-          this.setState({
-            disruptions: disruptions,
-            disruptionsDisplayed: true
-
-          });
+          	const disruptions = responses.map((response, index) => {
+            	const lineName = lines[index];
+           		const description = response.length > 0 ? response[0].description : `${lineName} line: No disruptions.`;
+            	return description;
+          	});
+			// sets the disruption variables
+          	this.setState({
+            	disruptions: disruptions,
+            	disruptionsDisplayed: true
+          	});
         }).catch(error => {
           console.log('API call failed ' + error);
         });
     }
 
+	// a call to fetch weather data via openweathermap to display recommendations
 	fetchRecommendations = () =>{
+		// API URL with a structure of: http://api.openweathermap.org/data/2.5/weather?q=city,country&APPID=apikey
 		var url = "http://api.openweathermap.org/data/2.5/weather?q=London&units=metric&APPID=ff6197ed77d6bc29a776c3d6b8bca419";
 		$.ajax({
 			url: url,
@@ -159,14 +172,15 @@ export default class Iphone extends Component {
 	
 	}
 
+	// Sets the home page variable to true and the disruptions page to false
 	setToHome = () => {
 		this.setState({
 			home:true,
 			dpage:false
-		
 		});
 	}
 
+	// Sets the home page variable to false and the disruptions page to true
 	setToDisruption = () => {
 		this.setState({
 			home:false,
@@ -183,6 +197,7 @@ export default class Iphone extends Component {
 	
 		return (
 		<div class={ style.container }>
+			{/* Current weather */}
 			{this.state.home?
 			<div class={ style.header }>
 				<div class={style.city}>{this.state.locate}</div>
@@ -191,6 +206,7 @@ export default class Iphone extends Component {
 			</div>
 			: null
 	        }
+			{/* Hourly weather table for London */}
 			{this.state.home? 
 			<div>
 				<table class={HomeStyle}>
@@ -245,6 +261,7 @@ export default class Iphone extends Component {
 			</div>
 			:null
 	        }
+			{/* Hourly weather table for Queen Mary University of London */}
 			{this.state.home? 
 			<div>
 				<table class={UniStyle}>
@@ -299,6 +316,7 @@ export default class Iphone extends Component {
 			</div>
 			:null
 	        }
+			{/* Weather recommendations */}
 			{this.state.home ?
 			<div class={style.recommendation}>
 				<h2>Weather Recommendations</h2>
@@ -310,6 +328,7 @@ export default class Iphone extends Component {
 			</div>
 			:null
 			}
+			{/* TFL disruptions */}
 			<div class= { style_iphone.container }> 
 			{this.state.disruptions.length >= 1 && this.state.dpage ?
 				<div class={style.disruptions}>
@@ -323,6 +342,7 @@ export default class Iphone extends Component {
 			: null
 			}
 			</div>
+			{/* Buttons for Home and Disruptions page */}
 			<div class={style.footer}>
 				<table>
 					<td><Button class={ style.button } clickFunction={ this.setToHome }>Home Page</Button></td>
@@ -333,6 +353,7 @@ export default class Iphone extends Component {
 		);
 	}
 
+	// Parses the current weather data from the api
 	parseCurrentWeather = (parsed_json, type) => {
 		if (type === "weather") {
 			const location = parsed_json.name;
@@ -347,6 +368,7 @@ export default class Iphone extends Component {
 		}
 	}
 
+	// Parses the weather data from the api to create recommendations
 	parseRecommendation = (parsed_json,type) =>{
 		if (type === "weather") {
 			const currentDescription = parsed_json.weather[0].description;
@@ -377,6 +399,7 @@ export default class Iphone extends Component {
 		}
 	}
 	
+	// Parses the weather data from the api
 	parseResponse = (parsed_json, type) => {
 		if (type === "weather") {
 		  	const temp = parsed_json.list[0].main.temp;
@@ -417,6 +440,7 @@ export default class Iphone extends Component {
 		}
 	}
 
+	// Parses the next four hours of weather data from the api
 	parseNextResponse = (parsed_json, type) => {
 		if (type === "weather") {
 		  	const temp = parsed_json.list[4].main.temp;
@@ -457,6 +481,7 @@ export default class Iphone extends Component {
 		}
 	}
 
+	// Parses the University weather data from the api
 	parseUniResponse = (parsed_json, type) => {
 		if (type === "weather") {
 		  	const Unitemp = parsed_json.list[0].main.temp;
@@ -497,6 +522,7 @@ export default class Iphone extends Component {
 		}
 	}
 
+	// Parses the next four hours of University weather data from the api
 	parseNextUniResponse = (parsed_json, type) => {
 		if (type === "weather") {
 		  	const Unitemp = parsed_json.list[4].main.temp;
