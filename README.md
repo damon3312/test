@@ -1,4 +1,4 @@
-# Preact Boilerplate 
+# Preact Boilerplate  
 
 **0. Prerequisites:**
 
